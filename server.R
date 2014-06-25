@@ -13,7 +13,7 @@ shinyServer(function(input, output, session) {
     sliderInput("split", "Split (Presence in Conditions)", 
       value=min(input$split, input$numConditions-1),
       min=1, 
-      max=input$numConditions-1, 
+      max=max(2,input$numConditions-1), 
       step=1, 
       ticks=TRUE
     );
@@ -60,7 +60,7 @@ shinyServer(function(input, output, session) {
     
     lapply(1:input$numConditions, function(index) {
       sliderInput(
-        inputId=paste("samples-", index, sep=""),
+        inputId=paste("condition-", index, sep=""),
         label=paste("Probability of Presence in Condition", index),
         value=sliderValue()(index),
         min=0,
@@ -71,9 +71,40 @@ shinyServer(function(input, output, session) {
     })
   });
   
+  output$heatmap <- renderPlot({
+    m <- matrix(nrow=input$heatmapPeaks, ncol=input$numConditions*input$heatmapSamples);
+    rnames <- vector("character", nrow(m));
+    cnames <- vector("character", ncol(m));
+    ccolors <- vector("character", ncol(m));
+    sampleColors <- cm.colors(input$numConditions);
+    
+    for (p in 1:nrow(m)) {
+      rnames[p] <- paste("Peak", p);
+      presence <- 1;#ifelse(p <= 10, 1, 0);
+      absence <- 1 - presence;
+      
+      for (c in 1:input$numConditions) {
+        conditionId <- paste("condition-", c, sep="");
+        presenceProb <- input[[conditionId]];
+        
+        for (s in 1:input$heatmapSamples) {
+          col <- (c-1)*input$heatmapSamples + s;
+          m[p, col] <- ifelse(runif(1) <= presenceProb, presence, absence);
+          cnames[col] <- paste("Sample ", c, ".", s, sep="");
+          ccolors[col] <- sampleColors[c];
+        }
+      }
+    }
+    
+    rownames(m) <- rnames;
+    colnames(m) <- cnames;
+    
+    heatmap(m, col=c("#00FF00FF", "#FF0000FF"), ColSideColors=ccolors, Rowv=NA, Colv=NA);
+  });
+  
   prob <- reactive({
     sapply(1:input$numConditions, function(index) {
-      sampleId <- paste("samples-", index, sep="");
+      sampleId <- paste("condition-", index, sep="");
       x <- input[[sampleId]];
       
       c(x/input$numConditions, (1-x)/input$numConditions);

@@ -47,11 +47,18 @@ shinyUI(fluidPage(
     # Show a plot of the generated distribution
     mainPanel(
       fluidRow(
-        column(6, 
+        column(7, 
             tags$h3("Peak Presence"),
-            uiOutput("presenceByCondition")
+            uiOutput("presenceByCondition"),
+            tags$hr(),
+            tags$h3("Sample Heatmap"),
+            fluidRow(
+              column(6, numericInput("heatmapSamples", label="Samples by Condition", min=1, max=50, value=10, step=1)),
+              column(6, numericInput("heatmapPeaks", label="Peaks", min=1, max=100, value=20, step=1))
+            ),
+            plotOutput(outputId="heatmap")
         ),
-        column(5, offset=1,
+        column(5, 
           tags$h3("Sample Size"),
           textOutput(outputId="sampleSize"),
           textOutput(outputId="effectSize"),
