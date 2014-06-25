@@ -18,13 +18,16 @@ shinyUI(fluidPage(
   titlePanel("MALDI Sample Size Calculation (Presence/Absence)"),
   
   # Sidebar with a slider input for number of observations
-  sidebarLayout(position = "left",
+  sidebarLayout(position = "left", fluid=TRUE,
     sidebarPanel(
       tags$h3("Parameters"),
-      numericInput("numConditions", "Num. of Conditions", value="2", min=2, max=100, step=1),
+      fluidRow(
+        column(4, numericInput("numConditions", "Conditions", value="2", min=2, max=100, step=1)),
+        column(7, offset=1,numericInput("numOfPeaks", "Peaks in Experiment", value=2000, min=1, max=100000, step=1))
+      ),
       sliderInput("alpha", "Alpha", value=0.05, min=0.01, max=1, step=0.01),
       sliderInput("power", "Power", value=0.8, min=0.5, max=0.95, step=0.01),
-      numericInput("numOfPeaks", "Num. of Peaks", value=2000, min=1, max=100000, step=1),
+      
       tags$hr(),
       tags$h3("Presence Patterns"),
       selectInput("pattern", "Pattern", 
@@ -44,19 +47,19 @@ shinyUI(fluidPage(
     # Show a plot of the generated distribution
     mainPanel(
       fluidRow(
-        column(7, 
-            tags$h3("Peak Presence by Condition"),
+        column(6, 
+            tags$h3("Peak Presence"),
             uiOutput("presenceByCondition")
         ),
-        column(5,
-          tags$h3("Samples Size"),
+        column(5, offset=1,
+          tags$h3("Sample Size"),
           textOutput(outputId="sampleSize"),
-          textOutput(outputId="effectSize")      
+          textOutput(outputId="effectSize"),
+          tags$hr(),
+          tags$h3("Method Description"),
+          htmlOutput(outputId="methodDescription")
         )
-      ),
-      tags$hr(),
-      tags$h3("Method Description"),
-      htmlOutput(outputId="methodDescription")
+      )
     )
   )
 ))

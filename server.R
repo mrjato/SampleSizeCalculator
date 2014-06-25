@@ -104,28 +104,38 @@ shinyServer(function(input, output, session) {
     unadjustedAlpha <- input$alpha/input$numOfPeaks;
     label <- effectSizeLabel(result$w);
     
-    paste(
+    paste(sep="",
       "<div style=\"text-align: justify\">",
-      "In MALDI-TOF-MS, we will consider the peak presence/absence in each ",
-      "sample (boolean values) as potential biomarkers. Chi-square test of ",
-      "independence will be used for each candidate biomarker to estimate its ",
-      "statistical significance (association between the presence and ",
-      "condition (", input$numConditions, " conditions tested)). In order to ",
-      "avoid false positives due to multiple tests, and considering ",
-      "approximately ", input$numOfPeaks, " biomarkers to be tested, for an ",
-      "adjusted p-value (with Bonferroni correction) of ", input$alpha, 
-      " (q-value), we will do the power calculation for a minimum ",
-      "significance threshold (alpha) of ", input$alpha, "/", input$numOfPeaks,
-      "=", unadjustedAlpha, " for every biomarker [1].<br/><br/>",
-      "In this sense, the power calculation for the association Chi-Square ",
-      "test with a power of ", round(input$power*100, 2), "%, alpha=", 
-      unadjustedAlpha, ", and a (", label, ") Chi Square effect size of ",
-      round(result$w, 4), ", <strong>the minimal number of samples is ", 
-      ceiling(result$N), "</strong>.<br/><br/>",
-      "[1] Witte JS, Elston RC, Cardon LR. On the relative sample size ",
-      "required for multiple comparisons. Stat Med. 2000 Feb 15;19(3):369-72. ",
-      "PubMed PMID: 10649302.", 
-      "</div>", sep=""
+        "<p>",
+          "In MALDI-TOF-MS, we will consider the peak presence/absence in each 
+          sample (boolean values) as potential biomarkers. &Chi;<sup>2</sup> 
+          test ofindependence will be used for each candidate biomarker to 
+          estimate its statistical significance (association between the 
+          presence and condition (<strong>", input$numConditions, " conditions 
+          tested</strong>)). In order to avoid false positives due to multiple 
+          tests, and considering approximately <strong>", input$numOfPeaks, 
+          " biomarkers to be tested</strong>, for an <strong>adjusted p-value 
+          (with Bonferroni correction) of ", input$alpha, " (q-value)</strong>,
+          we will do the power calculation for a minimum <strong>significance 
+          threshold (alpha) of ", input$alpha, "/", input$numOfPeaks, "=", 
+          unadjustedAlpha, " for every biomarker</strong> [1].",
+        "</p>",
+        
+        "<p>",
+          "In this sense, the power calculation for the association <strong>
+          Chi-Square test with a power of ", round(input$power*100, 2), 
+          "%, alpha=", unadjustedAlpha, ", and a (", label, ") &Chi;<sup>2</sup>
+          effect size of ", round(result$w, 4), "</strong>, 
+          <strong style=\"color: #1122AA;\">the minimal number of samples is ", 
+          ceiling(result$N), "</strong>.",
+        "</p>",
+        
+        "<p>",
+          "[1] Witte JS, Elston RC, Cardon LR. On the relative sample size 
+          required for multiple comparisons. Stat Med. 2000 Feb 15;19(3):369-72.
+          PubMed PMID: 10649302.", 
+        "</p>",
+      "</div>"
     )
   });
 })
