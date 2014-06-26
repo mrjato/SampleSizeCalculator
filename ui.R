@@ -87,17 +87,17 @@ shinyUI(fluidPage(
          sidebarLayout(position = "left", fluid=TRUE,
            sidebarPanel(
               tags$h3("Parameters"),
-              sliderInput("twoSensitivity", label="Sensitivity", min=0, max=0.99, step=0.01, value=0.8, format="0%"),
+              sliderInput("twoSensitivity", label="Sensitivity", min=0, max=0.99, step=0.01, value=0.9, format="0%"),
               tags$p(style="font-size: 0.8em; color: gray;", 
                 "The minimum acceptable sensitivity for your diagnostic test (be conservative).
                 Sensitivity is the probability of a diseased sample being diagnosted as such."
               ),
-              sliderInput("twoSpecificity", label="Specificity", min=0, max=0.99, step=0.01, value=0.8, format="0%"),
+              sliderInput("twoSpecificity", label="Specificity", min=0, max=0.99, step=0.01, value=0.9, format="0%"),
               tags$p(style="font-size: 0.8em; color: gray;", 
                 "The minimum acceptable specificity for your diagnostic test (be conservative).
                 Specificity is the probability of a healthy sample being diagnosted as such."
               ),
-              sliderInput("twoError", label="Error", min=0, max=0.5, step=0.01, value=0.05, format="0%"),
+              sliderInput("twoError", label="Error", min=0.01, max=0.5, step=0.01, value=0.05, format="0%"),
               tags$p(style="font-size: 0.8em; color: gray;", 
                 "The maximum acceptable error for your diagnostic test (be conservative).
                 It determines the width of the confidence interval. Typically 5%."
@@ -106,6 +106,19 @@ shinyUI(fluidPage(
               tags$p(style="font-size: 0.8em; color: gray;", 
                 "Probability of the accuracy fall in (accuracy-error, accuracy+error) interval.
                 Typically 90%, 95% or 99%."
+              ),
+              selectInput("twoMode", label="Mode", 
+                choices=c(
+                  "Sample condition is known" = "known", 
+                  "Only prevalence is known" = "prevalence"
+                ),
+                selected="known"
+              ),
+              conditionalPanel(condition="input.twoMode == 'prevalence'",
+                sliderInput("twoPrevalence", label="Prevalence", min=0.01, max=0.99, step=0.01, value=0.25, format="0%"),
+                tags$p(style="font-size: 0.8em; color: gray;", 
+                  "Probability of being diseased in the population."
+                )
               )
            ),
            mainPanel(
@@ -126,7 +139,7 @@ shinyUI(fluidPage(
               tags$p(style="font-size: 0.8em; color: gray;", 
                 "The minimum acceptable accuracy for your diagnostic test (be conservative)."
               ),
-              sliderInput("tomError", label="Error", min=0, max=0.5, step=0.01, value=0.05, format="0%"),
+              sliderInput("tomError", label="Error", min=0.01, max=0.5, step=0.01, value=0.05, format="0%"),
               tags$p(style="font-size: 0.8em; color: gray;", 
                 "The maximum acceptable error for your diagnostic test (be conservative).
                 It determines the width of the confidence interval. Typically 5%."

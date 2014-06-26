@@ -181,47 +181,34 @@ shinyServer(function(input, output, session) {
     )
   });
   
-  output$tomSampleSize <- renderText({
-    acc <- input$tomAccuracy;
-    err <- input$tomError;
-    
-    zstar = qnorm(1 - (1 - input$tomCI) / 2);
-    samplesize <- zstar^2 * acc * (1-acc) / err^2;
-    
-    paste("<strong style=\"color: #11AA22;\">", ceiling(samplesize), "</strong>", sep="");
-  });
-  
-  output$tomMethodDescription <- renderText({
-    acc <- input$tomAccuracy*100;
-    ci <- input$tomCI*100;
-    err <- input$tomError*100;
-    ciWidth <- err*2;
-    
-    paste(sep="",
-      "<div style=\"text-align: justify;\">",
-        "<p>",
-          "We estimate the sample size for the minimum acceptable accuracy (", 
-          acc, "%) and a width of the ", ci, "% confidence interval of ", 
-          ciWidth, "% (", max(0, acc - err), "%, ", min(100, acc + err), "%).",
-        "</p>",
-      "</div>"
-    )
-  });
-  
   output$twoSampleSize <- renderText({
     sens <- input$twoSensitivity;
     spec <- input$twoSpecificity;
     err <- input$twoError;
     
     zstar = qnorm(1 - (1 - input$twoCI) / 2);
-    sensSampleSize <- ceiling(zstar^2 * sens * (1-sens) / err^2);
-    specSampleSize <- ceiling(zstar^2 * spec * (1-spec) / err^2);
+    sensSampleSize <- zstar^2 * sens * (1-sens) / err^2;
+    specSampleSize <- zstar^2 * spec * (1-spec) / err^2;
+    
+    if (input$twoMode == "prevalence") {
+      prev <- input$twoPrevalence;
+      
+      if (prev < 0.5) {
+        specSampleSize <- max(specSampleSize, (sensSampleSize - prev*sensSampleSize)/prev);
+      } else {
+        sensSampleSize <- max(sensSampleSize, (specSampleSize - (1-prev)*specSampleSize)/(1-prev));
+      }
+    }
+    
+    sensSampleSize <- ceiling(sensSampleSize);
+    specSampleSize <- ceiling(specSampleSize);
     sampleSize <- sensSampleSize + specSampleSize;
     
     paste(sep="",
       "<strong style=\"color: #11AA22;\">", 
-        sampleSize, 
-        " (", sensSampleSize, " diseased, ", specSampleSize, " healthy)",
+      sampleSize, 
+      " samples",
+      ifelse(input$twoMode == "known", paste(" (", sensSampleSize, " diseased, ", specSampleSize, " healthy)", sep=""), ""),
       "</strong>"
     );
   });
@@ -238,9 +225,45 @@ shinyServer(function(input, output, session) {
         "<p>",
           "We estimate the sample size for the minimum acceptable sensitivity (", 
           sens, "%) and specificity (", spec, "%), and a width of the ", ci, 
-          "% confidence interval of ", ciWidth, "%.",
+          "% confidence interval of ", ciWidth, "%. ",
           "Sensitivity CI: (", max(0, sens - err), "%, ", min(100, sens + err), "%). ",
           "Specificity CI: (", max(0, spec - err), "%, ", min(100, spec + err), "%). ",
+          ifelse(input$twoMode == "prevalence",
+            paste(sep="",
+              "Since only prevalence is known, we have taken into account a prevalence of ",
+              input$twoPrevalence * 100,
+              "% in order to ensure that the needed number of samples for both 
+              sensitivity and specificity will be obtained."
+            ),
+            ""
+          ),
+        "</p>",
+      "</div>"
+    )
+  });
+  
+  output$tomSampleSize <- renderText({
+    acc <- input$tomAccuracy;
+    err <- input$tomError;
+    
+    zstar = qnorm(1 - (1 - input$tomCI) / 2);
+    samplesize <- zstar^2 * acc * (1-acc) / err^2;
+    
+    paste("<strong style=\"color: #11AA22;\">", ceiling(samplesize), " samples</strong>", sep="");
+  });
+  
+  output$tomMethodDescription <- renderText({
+    acc <- input$tomAccuracy*100;
+    ci <- input$tomCI*100;
+    err <- input$tomError*100;
+    ciWidth <- err*2;
+    
+    paste(sep="",
+      "<div style=\"text-align: justify;\">",
+        "<p>",
+          "We estimate the sample size for the minimum acceptable accuracy (", 
+          acc, "%) and a width of the ", ci, "% confidence interval of ", 
+          ciWidth, "% (", max(0, acc - err), "%, ", min(100, acc + err), "%).",
         "</p>",
       "</div>"
     )
