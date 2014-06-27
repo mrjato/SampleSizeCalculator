@@ -4,8 +4,10 @@
 # http://www.rstudio.com/shiny/
 #
 
-library(shiny)
-source('samplesize_MALDI.R')
+library(shiny);
+source('cohen.R');
+source('samplesize_MALDI.R');
+source('samplesize_gel2D.R');
 
 shinyServer(function(input, output, session) {
   output$splitLocation <- renderUI({
@@ -16,7 +18,7 @@ shinyServer(function(input, output, session) {
       step=1, 
       ticks=TRUE
     );
-  })
+  });
   
   observe({ 
     if (input$numConditions == 2) {
@@ -120,7 +122,7 @@ shinyServer(function(input, output, session) {
       alpha=input$alpha, 
       power=input$power
     );
-    paste("<strong style=\"color: #11AA22;\">Number of samples: ", ceiling(result$N), "</strong>", sep="");
+    paste("<strong style=\"color: #11AA22;\">", ceiling(result$N), " total samples</strong>", sep="");
   });
   
   output$effectSize <- renderText({
@@ -144,7 +146,7 @@ shinyServer(function(input, output, session) {
   output$methodDescription <- renderText({
     result <- computeSampleSizeMALDI(prob(), input$numOfPeaks, alpha=input$alpha, power=input$power);
     unadjustedAlpha <- input$alpha/input$numOfPeaks;
-    label <- effectSizeLabel(result$w);
+    label <- effectSizeLabel.chisq(result$w);
     
     paste(sep="",
       "<div style=\"text-align: justify\">",
@@ -207,7 +209,7 @@ shinyServer(function(input, output, session) {
     paste(sep="",
       "<strong style=\"color: #11AA22;\">", 
       sampleSize, 
-      " samples",
+      " total samples",
       ifelse(input$twoMode == "known", paste(" (", sensSampleSize, " diseased, ", specSampleSize, " healthy)", sep=""), ""),
       "</strong>"
     );
@@ -249,7 +251,7 @@ shinyServer(function(input, output, session) {
     zstar = qnorm(1 - (1 - input$tomCI) / 2);
     samplesize <- zstar^2 * acc * (1-acc) / err^2;
     
-    paste("<strong style=\"color: #11AA22;\">", ceiling(samplesize), " samples</strong>", sep="");
+    paste("<strong style=\"color: #11AA22;\">", ceiling(samplesize), " total samples</strong>", sep="");
   });
   
   output$tomMethodDescription <- renderText({
@@ -267,5 +269,60 @@ shinyServer(function(input, output, session) {
         "</p>",
       "</div>"
     )
+  });
+  
+  output$gelSampleSize <- renderText({
+    samplesize <- computeSampleSizeGel(
+      input$gelCV, 
+      input$gelFC, 
+      input$gelPower, 
+      input$gelAlpha, 
+      input$gelGroups
+    );
+    
+    paste("<strong style=\"color: #11AA22;\">", ceiling(samplesize), " samples by condition</strong>", sep="");
+  });
+  
+  output$gelMethodDescription <- renderText({
+    samplesize <- computeSampleSizeGel(
+      input$gelCV, 
+      input$gelFC, 
+      input$gelPower, 
+      input$gelAlpha, 
+      input$gelGroups
+    );
+    testname <- testForGroups(input$gelGroups);
+    effectsize <- round(computeEffectSizeGel(input$gelGroups, input$gelCV, input$gelFC), 2);
+    esLabel <- effectSizeLabelForGroups(effectsize, input$gelGroups);
+    power <- input$gelPower * 100;
+    alpha <- input$gelAlpha;
+    
+    examples <- gelExamples(samplesize, input$gelPower, input$gelAlpha, input$gelGroups);
+    
+    examplesText <- paste(sep="", collapse="",
+      "<ul>",
+      apply(examples, 1, function(x) {
+        paste(sep="",
+          "<li>A fold-change in the mean amount of protein of at least ",
+          x[1], " (", (x[1] - 1)*100, "%), unless the coefficient of variation 
+          in each group is not greater than ", x[2], ".</li>"
+        );
+      }),
+      "</ul>"
+    );
+    
+    paste(sep="",
+      "<div style=\"text-align: justify;\">",
+        "<p>",
+          "With a sample size of ", samplesize, " samples by condition a ", 
+          testname, " for detecting statistically significant amout-of-protein 
+          differences will be able to detect effect sizes of, at least, ", 
+          effectsize, " (", esLabel, "), at ", power, "% of sensitivity, i.e. 
+          power, and null hypothesis rejection threshold of ", alpha, ", which
+          implies, for example",
+          examplesText,
+        "</p>",
+      "</div>"
+    );
   });
 })

@@ -13,69 +13,110 @@ shinyUI(fluidPage(
   # Sidebar with a slider input for number of observations
   tabsetPanel(
     tabPanel("Biomarker Discovery", 
-      sidebarLayout(position = "left", fluid=TRUE,
-        sidebarPanel(
-          tags$h3("Parameters"),
-          fluidRow(
-            column(4, numericInput("numConditions", "Conditions", value=4, min=2, max=100, step=1)),
-            column(7, offset=1,numericInput("numOfPeaks", "Peaks in Experiment", value=2000, min=1, max=100000, step=1))
-          ),
-          sliderInput("alpha", "Alpha", value=0.05, min=0.01, max=1, step=0.01),
-          tags$p(style="font-size: 0.8em; color: gray;", 
-            "Probability of detecting a peak as a potential biomarker when it is not
-            a real biomarker (Type I error prob.)."
-          ),
-          sliderInput("power", "Power", value=0.8, min=0.5, max=0.95, step=0.01),
-          tags$p(style="font-size: 0.8em; color: gray;", 
-            "Probability of detecting a peak as a potential biomarker when it is is
-            a real biomarker (1-beta is the Type II error prob.)."
-          ),
-          
-          tags$hr(),
-          tags$h3("Presence Patterns"),
-          selectInput("pattern", "Pattern", 
-            choices=list("1 vs 1" = "halfvshalf")
-          ),
-          sliderInput("presence", "Presence means", value=0.8, min=0, max=1, step=0.01, format="0%"),
-          sliderInput("absence", "Absence means", value=0.2, min=0, max=1, step=0.01, format="0%"),
-          conditionalPanel(condition = "input.pattern == 'onevsone'",
-            sliderInput("noise", "Noise Means", value=0.5, min=0, max=1, step=0.01, format="0%")
-          ),
-          conditionalPanel(condition = "input.pattern == 'split'",
-            uiOutput("splitLocation")
-          ),
-          actionButton("applyPattern", "Apply Pattern")
-        ),
-        
-        # Show a plot of the generated distribution
-        mainPanel(
-          fluidRow(
-            column(7, 
-              tags$h3("Presence Pattern"),
-              tags$p(style="font-size: 0.9em; color: gray;", 
-                "This presence pattern allows you to easily establish your effect
-                size."
+      tabsetPanel(
+        tabPanel("Gel-2D Sample Size",
+          sidebarLayout(position = "left", fluid=TRUE,
+            sidebarPanel(
+              tags$h3("Parameters"),
+              sliderInput("gelGroups", label="Conditions", min=2, max=10, step=1, value=2),
+              tags$p(style="font-size: 0.8em; color: gray;", 
+                "Number of conditions in the study."
               ),
-              uiOutput("presenceByCondition"),
-              htmlOutput("effectSize"),
-              tags$hr(),
-              tags$h3("Sample Heatmap (Simulation)"),
-              htmlOutput("heatmapSubtitle"),
-              fluidRow(
-                column(6, numericInput("heatmapSamples", label="Samples by Condition", min=1, max=50, value=10, step=1)),
-                column(6, numericInput("heatmapPeaks", label="Peaks", min=1, max=100, value=20, step=1))
+              sliderInput("gelFC", label="Fold Change", min=1.1, max=5, step=0.01, value=2, format="0%"),
+              tags$p(style="font-size: 0.8em; color: gray;", 
+                     "Expected variation of the spot size between conditions."
               ),
-              checkboxInput("inversePattern", label="Show also inverse pattern", value=FALSE),
-              plotOutput(outputId="heatmap")
+              sliderInput("gelCV", label="Coefficient of Variation", min=0.1, max=2, step=0.01, value=0.1, format="0%"),
+              tags$p(style="font-size: 0.8em; color: gray;", 
+                "Expected variation of the spot size inside each condition."
+              ),
+              sliderInput("gelAlpha", "Alpha", min=0.01, max=1, step=0.01, value=0.05),
+              tags$p(style="font-size: 0.8em; color: gray;", 
+                "Probability of detecting a spot as a potential biomarker when it is not
+                a real biomarker (Type I error prob.)."
+              ),
+              sliderInput("gelPower", "Power", min=0.5, max=0.95, step=0.01, value=0.8),
+              tags$p(style="font-size: 0.8em; color: gray;", 
+                "Probability of detecting a spot as a potential biomarker when it is is
+                a real biomarker (1-beta is the Type II error prob.)."
+              )
             ),
-            column(5,
-              tags$div(class="well",
+            mainPanel(
+              tags$div(class="well well-lg",
                 tags$h3("Sample Size"),
-                htmlOutput(outputId="sampleSize")
+                htmlOutput("gelSampleSize")
               ),
-              tags$hr(),
               tags$h3("Method Description"),
-              htmlOutput(outputId="methodDescription")
+              htmlOutput("gelMethodDescription")
+            )
+          )
+        ),
+        tabPanel("MALDI Sample Size",
+          sidebarLayout(position = "left", fluid=TRUE,
+            sidebarPanel(
+              tags$h3("Parameters"),
+              fluidRow(
+                column(4, numericInput("numConditions", "Conditions", value=4, min=2, max=100, step=1)),
+                column(7, offset=1,numericInput("numOfPeaks", "Peaks in Experiment", value=2000, min=1, max=100000, step=1))
+              ),
+              sliderInput("alpha", "Alpha", value=0.05, min=0.01, max=1, step=0.01),
+              tags$p(style="font-size: 0.8em; color: gray;", 
+                "Probability of detecting a peak as a potential biomarker when it is not
+                a real biomarker (Type I error prob.)."
+              ),
+              sliderInput("power", "Power", value=0.8, min=0.5, max=0.95, step=0.01),
+              tags$p(style="font-size: 0.8em; color: gray;", 
+                "Probability of detecting a peak as a potential biomarker when it is is
+                a real biomarker (1-beta is the Type II error prob.)."
+              ),
+              
+              tags$hr(),
+              tags$h3("Presence Patterns"),
+              selectInput("pattern", "Pattern", 
+                choices=list("1 vs 1" = "halfvshalf")
+              ),
+              sliderInput("presence", "Presence means", value=0.8, min=0, max=1, step=0.01, format="0%"),
+              sliderInput("absence", "Absence means", value=0.2, min=0, max=1, step=0.01, format="0%"),
+              conditionalPanel(condition = "input.pattern == 'onevsone'",
+                sliderInput("noise", "Noise Means", value=0.5, min=0, max=1, step=0.01, format="0%")
+              ),
+              conditionalPanel(condition = "input.pattern == 'split'",
+                uiOutput("splitLocation")
+              ),
+              actionButton("applyPattern", "Apply Pattern")
+            ),
+            
+            # Show a plot of the generated distribution
+            mainPanel(
+              fluidRow(
+                column(7, 
+                  tags$h3("Presence Pattern"),
+                  tags$p(style="font-size: 0.9em; color: gray;", 
+                    "This presence pattern allows you to easily establish your effect
+                    size."
+                  ),
+                  uiOutput("presenceByCondition"),
+                  htmlOutput("effectSize"),
+                  tags$hr(),
+                  tags$h3("Sample Heatmap (Simulation)"),
+                  htmlOutput("heatmapSubtitle"),
+                  fluidRow(
+                    column(6, numericInput("heatmapSamples", label="Samples by Condition", min=1, max=50, value=10, step=1)),
+                    column(6, numericInput("heatmapPeaks", label="Peaks", min=1, max=100, value=20, step=1))
+                  ),
+                  checkboxInput("inversePattern", label="Show also inverse pattern", value=FALSE),
+                  plotOutput(outputId="heatmap")
+                ),
+                column(5,
+                  tags$div(class="well",
+                    tags$h3("Sample Size"),
+                    htmlOutput(outputId="sampleSize")
+                  ),
+                  tags$hr(),
+                  tags$h3("Method Description"),
+                  htmlOutput(outputId="methodDescription")
+                )
+              )
             )
           )
         )
