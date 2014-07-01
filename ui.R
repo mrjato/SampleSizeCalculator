@@ -8,7 +8,7 @@ library(shiny)
 
 shinyUI(fluidPage(
   # Application title
-  titlePanel("MALDI Sample Size Calculation (Presence/Absence)"),
+  titlePanel("Sample Size Calculation"),
   
   # Sidebar with a slider input for number of observations
   tabsetPanel(
