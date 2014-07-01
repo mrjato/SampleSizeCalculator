@@ -162,7 +162,7 @@ shinyServer(function(input, output, session) {
     cohenchies <- function(label) { cohen.ES(test="chisq", label)$effect.size };
     label <- ifelse (result$w<cohenchies("small"), "small", ifelse(result$w<cohenchies("medium"), "medium", "big"))
     
-    paste("<p style=\"color: grey;\">Peaks with <strong/>", round(result$w, 4), " (", label, ") effect size.</p>", sep="");
+    paste("<p style=\"color: grey;\">Peaks with ", round(result$w, 4), " (", label, ") effect size.</p>", sep="");
   });
   
   output$methodDescription <- renderText({
@@ -372,6 +372,17 @@ shinyServer(function(input, output, session) {
         "</p>",
       "</div>"
     )
+  });
+  
+  output$gelSampleSubtitle <- renderText({
+    effectsize <- round(computeEffectSizeGel(input$gelGroups, input$gelCV, input$gelFC), 2);
+    esLabel <- effectSizeLabelForGroups(effectsize, input$gelGroups);
+    
+    as.character(
+      tags$p(style="color: grey;",
+        paste(sep="", "Effect size is ", effectsize, " (", esLabel, ").")
+      )
+    );
   });
   
   output$gelSamplePlot <- renderPlot({

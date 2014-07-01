@@ -69,6 +69,7 @@ shinyUI(fluidPage(
                         )
                       ))
                     ),
+                    htmlOutput("gelSampleSubtitle"),
                     plotOutput("gelSamplePlot", height="100%", width="100%"),
                     tags$div(),
                     htmlOutput("gelSampleExplanation")
