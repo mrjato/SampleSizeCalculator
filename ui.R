@@ -24,11 +24,11 @@ shinyUI(fluidPage(
               ),
               sliderInput("gelFC", label="Fold Change", min=1.1, max=5, step=0.01, value=2, format="0%"),
               tags$p(style="font-size: 0.8em; color: gray;", 
-                     "Expected variation of the spot size between conditions."
+                "Expected variation of the spot size (area/density) between conditions."
               ),
-              sliderInput("gelCV", label="Coefficient of Variation", min=0.1, max=2, step=0.01, value=0.1, format="0%"),
+              sliderInput("gelCV", label="Coefficient of Variation", min=0.1, max=2, step=0.01, value=0.25, format="0%"),
               tags$p(style="font-size: 0.8em; color: gray;", 
-                "Expected variation of the spot size inside each condition."
+                "Expected variation of the spot size (area/density) inside each condition."
               ),
               sliderInput("gelAlpha", "Alpha", min=0.01, max=1, step=0.01, value=0.05),
               tags$p(style="font-size: 0.8em; color: gray;", 
@@ -42,12 +42,34 @@ shinyUI(fluidPage(
               )
             ),
             mainPanel(
-              tags$div(class="well well-lg",
-                tags$h3("Sample Size"),
-                htmlOutput("gelSampleSize")
-              ),
-              tags$h3("Method Description"),
-              htmlOutput("gelMethodDescription")
+              fluidRow(
+                column(7,
+                    tags$h3("Sample Spots (Simulation)"),
+                    fluidRow(
+                      column(6, selectInput("gelMeasurementType",
+                        label="Measurement Type",
+                        choices=list("Area" = "area", "Density" = "density"),
+                        selected="area"
+                      )),
+                      column(6, conditionalPanel("input.gelMeasurementType == 'density'",
+                        sliderInput("gelMediumDensity", label="Medium Density",
+                          value=0.5, min=0.1, max=1, step=0.01, format="0%"
+                        )
+                      ))
+                    ),
+                    plotOutput("gelSamplePlot", height="100%", width="100%"),
+                    tags$div(),
+                    htmlOutput("gelSampleExplanation")
+                ),
+                column(5, 
+                  tags$div(class="well well-lg",
+                    tags$h3("Sample Size"),
+                    htmlOutput("gelSampleSize")
+                  ),
+                  tags$h3("Method Description"),
+                  htmlOutput("gelMethodDescription")
+                )
+              )
             )
           )
         ),
@@ -105,7 +127,7 @@ shinyUI(fluidPage(
                     column(6, numericInput("heatmapPeaks", label="Peaks", min=1, max=100, value=20, step=1))
                   ),
                   checkboxInput("inversePattern", label="Show also inverse pattern", value=FALSE),
-                  plotOutput(outputId="heatmap")
+                  plotOutput("heatmap")
                 ),
                 column(5,
                   tags$div(class="well",

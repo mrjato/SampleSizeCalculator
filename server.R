@@ -8,6 +8,7 @@ library(shiny);
 source('cohen.R');
 source('samplesize_MALDI.R');
 source('samplesize_gel2D.R');
+source('gel2Dspots.R');
 
 shinyServer(function(input, output, session) {
   output$splitLocation <- renderUI({
@@ -103,7 +104,16 @@ shinyServer(function(input, output, session) {
     rownames(m) <- rnames;
     colnames(m) <- cnames;
     
-    heatmap(m, col=c("#00FF00FF", "#FF0000FF"), ColSideColors=ccolors, Rowv=NA, Colv=NA);
+    heatmap(m, 
+      col=c("#00FF00FF", "#FF0000FF"),
+      legend=FALSE,
+      ColSideColors=ccolors,
+      labRow=NA, labCol=NA,
+      Rowv=NA, Colv=NA, 
+      xlab="Samples (by condition)", ylab="Peaks",
+      margin=c(2, 2),
+      hclustfun=NA, distfun=NA, reorderfun=NA
+    );
   });
   
   prob <- reactive({
@@ -325,4 +335,38 @@ shinyServer(function(input, output, session) {
       "</div>"
     );
   });
+  
+  output$gelSampleExplanation <- renderText({
+    isArea <- input$gelMeasurementType == "area";
+    
+    paste(sep="",
+      "<div style=\"text-align: justify;\">",
+        "<p>",
+            "The null hypothesis tested is that both conditions have the same ",
+            ifelse(isArea, "area", "density"), 
+            ". Therefore, the alternate hypothesis is that one of the conditions
+            has a greater or lower ",
+            ifelse(isArea, "area", "density"), 
+            ". In this simulation we present a potential biomarker where the 
+            Condition A is ",
+            ifelse(isArea, "bigger", "denser"), 
+            " than Condition B.<br/>",
+            ifelse(isArea,
+              "Stronger differences will present a minimum area in Condition A
+              bigger than the maximum area in Condition B (red circles).",
+              "Stronger differences will present this pattern in the same
+              direction in all of the three cases (best, medium, and worst)."
+            ),
+        "</p>",
+      "</div>"
+    )
+  });
+  
+  output$gelSamplePlot <- renderPlot({
+    if (input$gelMeasurementType == "area") {
+      drawSpots(input$gelCV, input$gelFC);
+    } else {
+      drawSpotsDensity(input$gelCV, input$gelFC, baseDensity=input$gelMediumDensity);
+    }
+  }, height=960, width=960);
 })
